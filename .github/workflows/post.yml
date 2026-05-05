@@ -1,0 +1,52 @@
+name: Instagram投稿（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      idea_id:
+        description: '投稿するアイデアID（空白の場合は最古のapprovedを投稿）'
+        required: false
+        default: ''
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: リポジトリ取得
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存ライブラリインストール
+        run: pip install requests python-dotenv Pillow
+
+      - name: .env ファイル作成
+        run: |
+          echo "IG_ACCESS_TOKEN=${{ secrets.IG_ACCESS_TOKEN }}" >> .env
+          echo "IG_USER_ID=${{ secrets.IG_USER_ID }}" >> .env
+          echo "GITHUB_PAGES_BASE_URL=https://${{ github.repository_owner }}.github.io" >> .env
+          echo "GITHUB_PAGES_IMG_DIR=images/ig" >> .env
+
+      - name: Instagram 投稿
+        run: |
+          if [ -n "${{ github.event.inputs.idea_id }}" ]; then
+            python scripts/post_to_instagram.py --id "${{ github.event.inputs.idea_id }}"
+          else
+            python scripts/post_to_instagram.py
+          fi
+
+      - name: 変更をコミット & プッシュ
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "post: $(date +'%Y-%m-%d')"
+          git push

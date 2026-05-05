@@ -1,0 +1,21 @@
+# 認証情報（絶対にcommitしない）
+.env
+
+# Python キャッシュ
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 投稿待ち・済みフォルダ（ローカル管理）
+ideas/
+drafts/
+approved/
+posted/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/
+*.swp
